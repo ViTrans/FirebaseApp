@@ -1,60 +1,43 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useEffect, useState } from "react";
 import { auth, db } from "../firebase/firebaseConfig";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  onAuthStateChanged,
-} from "firebase/auth";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 const schema = yup.object().shape({
   email: yup.string().email().required("Vui lòng nhập email"),
   password: yup.string().required("Vui lòng nhập mật khẩu"),
   username: yup.string().required("Vui lòng nhập tên đăng nhập"),
+  rpassword: yup
+    .string()
+    .oneOf([yup.ref("password"), null], "Mật khẩu không khớp"),
 });
 const SignUp = () => {
-  const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const onSubmit = async (data) => {
-    // handle confirm password
-    if (data.password !== data.rpassword) {
-      setError("Mật khẩu không khớp");
-      return;
-    }
-    setError(null);
-
+  const handleSignUp = async (data) => {
+    if (!isValid) return;
     // handle signup with firebase
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      const user = userCredential.user;
-      setUser(user);
-
-      // add user to firestore
-      await addDoc(collection(db, "users"), {
-        email: user.email,
-        username: data.username,
-        avatar: "",
-        createdAt: serverTimestamp(),
-      });
+      await createUserWithEmailAndPassword(auth, data.email, data.password);
 
       // update profile
-      await updateProfile(user, {
+      await updateProfile(auth.currentUser, {
         displayName: data.username,
+      });
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        displayName: data.username,
+        email: data.email,
+        password: data.password,
+        createdAt: serverTimestamp(),
       });
       // reset form
       reset({
@@ -63,33 +46,22 @@ const SignUp = () => {
         rpassword: "",
         username: "",
       });
+      navigate("/");
     } catch (error) {
       console.log(error);
     }
   };
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-    });
-    return () => unsubscribe();
-  }, [user]);
 
   return (
     <div className="max-w-[600px] w-full bg-white shadow-md rounded-lg mx-auto mt-20 p-3">
-      {user && (
-        <p className="text-green-500">{user?.displayName} Đăng ký thành công</p>
-      )}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <h2 className="text-2xl font-medium text-center">Sign Up</h2>
+      <form onSubmit={handleSubmit(handleSignUp)}>
         <div className="flex flex-col gap-2 mb-2">
           <label className="text-slate-500">Username</label>
           <input
             type="text"
             placeholder="Enter your email"
-            className="w-full border border-slate-200 rounded-lg py-3 px-5 outline-none  bg-transparent focus:border-slate-500"
+            className="w-full px-5 py-3 bg-transparent border rounded-lg outline-none border-slate-200 focus:border-slate-500"
             {...register("username")}
           />
           {errors.username && (
@@ -101,7 +73,7 @@ const SignUp = () => {
           <input
             type="text"
             placeholder="Enter your email"
-            className="w-full border border-slate-200 rounded-lg py-3 px-5 outline-none  bg-transparent focus:border-slate-500"
+            className="w-full px-5 py-3 bg-transparent border rounded-lg outline-none border-slate-200 focus:border-slate-500"
             {...register("email")}
           />
           {errors.email && (
@@ -113,7 +85,7 @@ const SignUp = () => {
           <input
             type="password"
             placeholder="Enter your password"
-            className="w-full border border-slate-200 rounded-lg py-3 px-5 outline-none  bg-transparent focus:border-slate-500"
+            className="w-full px-5 py-3 bg-transparent border rounded-lg outline-none border-slate-200 focus:border-slate-500"
             {...register("password")}
           />
           {errors.password && (
@@ -125,13 +97,15 @@ const SignUp = () => {
           <input
             type="password"
             placeholder="Enter your password"
-            className="w-full border border-slate-200 rounded-lg py-3 px-5 outline-none  bg-transparent focus:border-slate-500"
+            className="w-full px-5 py-3 bg-transparent border rounded-lg outline-none border-slate-200 focus:border-slate-500"
             name="rpassword"
             {...register("rpassword")}
           />
-          {error && <p className="text-red-500">{error}</p>}
+          {errors.rpassword && (
+            <p className="text-red-500">{errors.rpassword.message}</p>
+          )}
         </div>
-        <button className="inline-flex items-center justify-center px-8 py-4 font-sans font-semibold tracking-wide text-white bg-blue-500 rounded-lg w-full">
+        <button className="inline-flex items-center justify-center w-full px-8 py-4 font-sans font-semibold tracking-wide text-white bg-blue-500 rounded-lg">
           Sign Up
         </button>
       </form>

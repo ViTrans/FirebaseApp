@@ -10,7 +10,7 @@ const HomePage = () => {
   const getWeather = async (city) => {
     try {
       const response = await axios.get(
-        `https://api.weatherapi.com/v1/current.json?key=2643b73877f14c8183e144152232706&q=${
+        `https://api.weatherapi.com/v1/current.json?key=a4c5421eb28949f08f9151545232906&q=${
           city || "hanoi"
         }&aqi=yes`
       );
@@ -30,7 +30,13 @@ const HomePage = () => {
   // https://api.weatherapi.com/v1/current.json?key=2643b73877f14c8183e144152232706&q=hanoi&aqi=yes
   return (
     <div className="max-w-[600px] bg-white shadow-md rounded-lg mx-auto p-3 mt-20">
-      <div className="flex items-center gap-5 w-full border border-gray-200 rounded-lg py-3 px-5">
+      <div className="flex items-center w-full gap-5 px-5 py-3 border border-gray-200 rounded-lg">
+        <input
+          onChange={handleChangeCity}
+          type="text"
+          className="w-full bg-transparent outline-none"
+          placeholder="Enter your content..."
+        />
         <span className="flex-shrink-0 text-gray-500">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -47,22 +53,23 @@ const HomePage = () => {
             />
           </svg>
         </span>
-        <input
-          onChange={handleChangeCity}
-          type="text"
-          className="w-full outline-none bg-transparent"
-          placeholder="Enter your content..."
-        />
       </div>
-      <h3 className="text-center font-medium text-xl mt-2">Select City</h3>
+      <h3 className="mt-2 text-xl font-medium text-center">Select City</h3>
       <div>
         {weather && (
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <h4 className="text-xl font-medium">{weather?.location?.name}</h4>
-              <p className="text-gray-500 ">
-                {Date(weather?.location?.localtime).split(" ")[0]}
-              </p>
+              <div className="flex items-center gap-x-5">
+                <p className="text-gray-500 ">
+                  {weather?.current?.condition?.text}
+                </p>
+                <img
+                  className="w-[30px] h-[30px]"
+                  src={weather?.current?.condition?.icon}
+                  alt=""
+                />
+              </div>
             </div>
             <span className="text-xl font-medium">
               {weather?.current?.temp_c}
