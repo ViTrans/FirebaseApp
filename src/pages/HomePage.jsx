@@ -3,10 +3,14 @@ import { useEffect, useState } from "react";
 import lodash from "lodash";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import WeatherItem from "../components/weather/WeatherItem";
+import Today from "./Today";
+import Tomorrow from "./Tomorrow";
+import OtherDay from "./OtherDay";
 const HomePage = () => {
   const [city, setCity] = useState("hanoi");
   const [weather, setWeather] = useState(null);
+  const [tab, setTab] = useState("today");
+
   //   const [error, setError] = useState(null);
   //   const [loading, setLoading] = useState(false);
 
@@ -42,8 +46,8 @@ const HomePage = () => {
   }
 
   return (
-    <div className="w-full bg-white shadow-md rounded-lg mx-auto relative ">
-      <img src="bg.jpg" alt="" />
+    <div className="w-full bg-primary  shadow-md  mx-auto relative pb-5">
+      {/* <img src="bg.jpg" alt="" />
       <div className="absolute top-0 left-0 w-full h-full ">
         <div className="flex justify-between">
           <div className="flex flex-col p-5 m-5 text-white bg-white bg-opacity-25 w-full max-w-[300px] rounded-md">
@@ -84,24 +88,59 @@ const HomePage = () => {
             />
           </div>
         </div>
+      </div> */}
+      <div className="flex overflow-x-auto gap-x-5 whitespace-nowrap justify-center pt-10">
+        <button
+          onClick={() => {
+            setTab("today");
+          }}
+          className={`flex items-center px-5 py-3 font-medium  rounded-lg cursor-pointer bg-blue-50 gap-x-2 ${
+            tab === "today" && "bg-blue-500 text-white"
+          }`}
+        >
+          Hôm nay
+        </button>
+        <button
+          onClick={() => {
+            setTab("tomorrow");
+          }}
+          className={`flex items-center px-5 py-3 font-medium  text-gray-900 bg-blue-50 rounded-lg cursor-pointer gap-x-2 hover:bg-blue-50 hover:text-blue-500 ${
+            tab === "tomorrow" && "bg-blue-500 text-white"
+          }`}
+        >
+          Ngày mai
+        </button>
+        <button
+          onClick={() => {
+            setTab("day");
+          }}
+          className={`flex items-center px-5 py-3 font-medium text-gray-900 bg-blue-50 rounded-lg cursor-pointer gap-x-2 hover:bg-blue-50 hover:text-blue-500 ${
+            tab === "day" && "bg-blue-500 text-white"
+          }`}
+        >
+          Ngày
+        </button>
       </div>
-      <div className="weather-list grid grid-cols-4 absolute bottom-0 p-5 gap-10">
-        {weather?.list.map((item, index) => {
-          if (index % 8 === 0) {
-            return (
-              <WeatherItem
-                key={index}
-                day={new Date(item.dt_txt).toLocaleDateString("en-US", {
-                  weekday: "long",
-                })}
-                night={Math.round(item.main.temp_min)}
-                dayTemp={Math.round(item.main.temp_max)}
-                icon={item.weather[0].icon}
-              ></WeatherItem>
-            );
-          }
-        })}
+      <div className="max-w-[600px] mx-auto mt-10">
+        <input
+          onChange={handleChangeCity}
+          type="text"
+          placeholder="Enter your content"
+          className="w-full border text-white placeholder:text-white border-slate-200 rounded-lg py-3 px-5 outline-none  bg-transparent"
+        />
       </div>
+      <h1 className="text-center text-white text-4xl font-semibold mt-5">
+        {weather?.city.name} - {weather?.city.country || "VN"}
+      </h1>
+      {weather ? (
+        <div>
+          {tab === "today" && <Today weather={weather} />}
+          {tab === "tomorrow" && <Tomorrow weather={weather} />}
+          {tab === "day" && <OtherDay weather={weather} />}
+        </div>
+      ) : (
+        <div>Loading</div>
+      )}
     </div>
   );
 };

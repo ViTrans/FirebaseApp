@@ -11,20 +11,20 @@ const Header = () => {
   };
 
   return (
-    <div className="flex items-center justify-center p-5 bg-white shadow-md gap-x-5">
+    <div className="flex items-center justify-between p-5 bg-primary shadow-md gap-x-5">
       <img
         className="w-[40px] h-[40px] rounded-full object-cover"
         src={user?.photoURL || "https://picsum.photos/200/300"}
         alt=""
       />
-      <span>
+      {/* <span className="border border-white py-1 px-2 rounded-md bg-white text-black">
         Hello <strong>{user?.displayName}</strong>
-      </span>
+      </span> */}
 
       {user && (
         <button
           onClick={handleSignOut}
-          className="inline-flex items-center justify-center px-6 py-3 font-sans font-semibold tracking-wide text-white bg-blue-500 rounded-lg "
+          className="inline-flex items-center justify-center px-6 py-3 font-sans font-semibold tracking-wide text-black bg-white rounded-lg "
         >
           Sign Out
         </button>
